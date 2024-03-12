@@ -1,6 +1,6 @@
 # OpenAI GPT Voice Assistant
 
-env file should be located at 'env\.env' and contain:
+env file should be located at 'env\\.env' and contain:
 
 OPENAI_API_KEY = "Your OpenAI API Key"
 
