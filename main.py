@@ -11,19 +11,23 @@ ai_region = os.getenv('SPEECH_REGION')
 def main():
     try:
         global speech_config
+        # Create a speech configuration object with the specified subscription key and service region for speech 
         speech_config = speech_sdk.SpeechConfig(ai_key, ai_region)
-        command = TranscribeCommand()
+        command = Transcribe_Command()
         gpt_response = call_gpt(command)
-        SynthesizeSpeech(gpt_response)
+        Synthesize_Speech(gpt_response)
         
     except Exception as ex:
         print(ex)
 
-def TranscribeCommand():
+# Function to transcribe user's voice command
+def Transcribe_Command():
     command = ""
+    # Create a speech recognizer from microphone using the default microphone as audio input 
     audio_config = speech_sdk.AudioConfig(use_default_microphone=True)
     speech_recognizer = speech_sdk.SpeechRecognizer(speech_config, audio_config)
     print("Listening...")
+    # Recognize the speech from the microphone and get the result as text from the speech recognizer object asynchronously
     speech_recognition_result = speech_recognizer.recognize_once_async().get()
     if speech_recognition_result.reason == speech_sdk.ResultReason.RecognizedSpeech:
         command = speech_recognition_result.text
@@ -39,12 +43,12 @@ def TranscribeCommand():
 
 
 def call_gpt(message):
-    # Define the headers and data for HTTP request
+    # Define the headers and data for HTTP request to the OpenAI API
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {api_key}',
     }
-
+    
     data = {
         "model": "gpt-4-0125-preview",
         "messages": [{"role": "user", "content": message},
@@ -53,15 +57,16 @@ def call_gpt(message):
         "max_tokens": 256
     }
 
-    # Make the HTTP request 
+    # Make the HTTP request to the OpenAI API
     response = requests.post('https://api.openai.com/v1/chat/completions', headers=headers, data=json.dumps(data))
 
-    # Get the response JSON
+    # Get the response JSON and extract the assistant message
     response_json = response.json()
     assistant_message = response_json['choices'][0]['message']['content']
     return assistant_message
 
-def SynthesizeSpeech(message):
+def Synthesize_Speech(message):
+    # Create a speech synthesizer using the default speaker as audio output.
     speech_synthesizer = speech_sdk.SpeechSynthesizer(speech_config)
     result = speech_synthesizer.speak_text_async(message).get()
     if result.reason != speech_sdk.ResultReason.SynthesizingAudioCompleted:
